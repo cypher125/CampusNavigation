@@ -16,11 +16,9 @@ function formatSlug(name: string): string {
 // Handler for GET /api/buildings/[slug]
 export async function GET(
   request: NextRequest,
-  context: { params: { slug: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    // Properly await params before accessing properties
-    const params = await Promise.resolve(context.params);
     const encodedSlug = params.slug;
     
     // Decode URL encoding and then format as slug
@@ -87,11 +85,9 @@ export async function GET(
 // Handler for PUT /api/buildings/[slug]
 export async function PUT(
   request: NextRequest,
-  context: { params: { slug: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    // Properly await params before accessing properties
-    const params = await Promise.resolve(context.params);
     const encodedSlug = params.slug;
     
     // Decode URL encoding and then format as slug
@@ -187,11 +183,9 @@ export async function PUT(
 // Handler for DELETE /api/buildings/[slug]
 export async function DELETE(
   request: NextRequest,
-  context: { params: { slug: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    // Properly await params before accessing properties
-    const params = await Promise.resolve(context.params);
     const encodedSlug = params.slug;
     
     // Decode URL encoding and then format as slug
