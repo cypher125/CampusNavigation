@@ -2,6 +2,5 @@
   "github": {
     "silent": true
   },
-  "ignoreCommand": "echo 'Skipping lint check for deployment'",
   "buildCommand": "next build"
 } 
