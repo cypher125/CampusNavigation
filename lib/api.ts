@@ -3,8 +3,6 @@
  * Provides functions for loading and saving campus boundaries
  */
 
-import { Building } from '@/lib/types';
-
 // Default boundary points as fallback if loading fails
 export const defaultBoundaries: [number, number][] = [
 ];
@@ -215,40 +213,41 @@ export async function updateBuilding(slug: string, buildingData: any) {
 /**
  * Uploads an image for a building
  * @param slug The building slug
- * @param file The image file to upload
+ * @param imageFile The image file to upload
+ * @returns Promise resolving to the updated building data
  */
-export async function uploadBuildingImage(slug: string, file: File) {
+export async function uploadBuildingImage(slug: string, imageFile: File) {
   try {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', imageFile);
     
-    const response = await fetch(`/api/buildings/${slug}/upload`, {
+    const response = await fetch(`${API_BASE_URL}/buildings/${slug}/upload-image`, {
       method: 'POST',
       body: formData,
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to upload image: ${response.statusText}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error("Error uploading building image:", error);
+    console.error(`Error uploading image for building with slug ${slug}:`, error);
     throw error;
   }
 }
 
 /**
- * Gets the URL for a building image
- * @param slug The building slug or ID
- * @returns The URL for the building image
+ * Gets the image URL for a building
+ * @param slug The building slug or name
+ * @returns The complete URL to the building image
  */
-export function getBuildingImageUrl(slug: string) {
-  // If the slug already contains the full URL, return it
-  if (slug.startsWith('http')) {
-    return slug;
-  }
+export function getBuildingImageUrl(slug: string): string {
+  // Make sure slug is properly formatted (in case a name was passed instead of a slug)
+  const formattedSlug = typeof slug === 'string' 
+    ? slug.toLowerCase().replace(/\s+/g, "-")
+    : slug;
   
-  const API_URL = process.env.NEXT_PUBLIC_NAVIGATION_API_URL || 'https://navigationbackend.onrender.com';
-  return `${API_URL}/buildings/${slug}/image`;
+  return `${API_BASE_URL}/images/buildings/${formattedSlug}.jpg`;
 } 

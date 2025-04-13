@@ -1,20 +1,10 @@
 "use client"
 
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
-import { Button } from '@/components/ui/button'
-import { MapPin } from 'lucide-react'
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
+import { useEffect, useRef } from "react"
+import { MapContainer, TileLayer, Marker, useMap, ZoomControl } from "react-leaflet"
+import L from "leaflet"
+import "leaflet/dist/leaflet.css"
 import { Building } from "@/lib/types"
-
-// Fix for default marker icons
-// This is required because Leaflet's assets get messed up in production builds
-const icon = L.icon({
-  iconUrl: '/user-location.png',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-})
 
 // Create custom SVG building marker
 const createBuildingIcon = (isSelected: boolean = false) => {
@@ -73,126 +63,151 @@ const createPinIcon = () => {
   });
 };
 
+// MapController component to handle events
+function MapController({ 
+  onMapClick,
+  position,
+}: { 
+  onMapClick: (position: {lat: number, lng: number}) => void
+  position: {lat: number, lng: number}
+}) {
+  const map = useMap()
+  
+  useEffect(() => {
+    // Center map on the current position with a more suitable zoom level for satellite imagery
+    map.setView([position.lat, position.lng], 18, {
+      animate: true,
+      duration: 1 // 1 second animation
+    })
+    
+    // Invalidate map size to ensure proper rendering
+    setTimeout(() => {
+      map.invalidateSize()
+    }, 100)
+    
+    // Enable smooth wheel zoom for better zooming experience
+    // @ts-ignore - Types might not include this method but it exists in Leaflet
+    if (map.options && !map.options.smoothWheelZoom) {
+      map.options.smoothWheelZoom = true
+      map.options.smoothSensitivity = 1.5
+    }
+  }, [map, position])
+  
+  useEffect(() => {
+    // Add click handler to map
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      onMapClick({
+        lat: e.latlng.lat,
+        lng: e.latlng.lng
+      })
+    }
+    
+    map.on('click', handleMapClick)
+    
+    return () => {
+      map.off('click', handleMapClick)
+    }
+  }, [map, onMapClick])
+  
+  return null
+}
+
 interface MapSelectorProps {
-  initialPosition?: { lat: number; lng: number }
-  onLocationSelect: (location: { lat: number; lng: number }) => void
+  value: {lat: number, lng: number}
+  onChange: (position: {lat: number, lng: number}) => void
   buildings?: Building[]
 }
 
-// This component handles the map events
-function LocationMarker({ 
-  initialPosition, 
-  onLocationSelect 
-}: MapSelectorProps) {
-  const [position, setPosition] = useState(initialPosition || { lat: 6.51771, lng: 3.37534 })
-
-  const map = useMapEvents({
-    click(e) {
-      const newPos = { lat: e.latlng.lat, lng: e.latlng.lng }
-      setPosition(newPos)
-      onLocationSelect(newPos)
-    },
-  })
-
-  useEffect(() => {
-    if (initialPosition) {
-      setPosition(initialPosition)
-      map.flyTo(initialPosition, map.getZoom())
-    }
-  }, [initialPosition, map])
-
-  return position ? (
-    <Marker 
-      position={position} 
-      icon={icon}
-    />
-  ) : null
-}
-
-export default function MapSelector({ 
-  initialPosition, 
-  onLocationSelect,
-  buildings = []
-}: MapSelectorProps) {
-  // Default to YabaTech coordinates if no initial position is provided
-  const defaultPosition = initialPosition || { lat: 6.51771, lng: 3.37534 }
-  const [selectedPosition, setSelectedPosition] = useState(defaultPosition)
-
-  const handleLocationSelect = (location: { lat: number; lng: number }) => {
-    setSelectedPosition(location)
-    onLocationSelect(location)
+export default function MapSelector({ value, onChange, buildings = [] }: MapSelectorProps) {
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  
+  // Default center on YabaTech
+  const defaultPosition = { lat: 6.51771, lng: 3.37534 }
+  const position = value.lat && value.lng ? value : defaultPosition
+  
+  // Handle marker drag
+  const handleMarkerDrag = (e: L.LeafletEvent) => {
+    const marker = e.target
+    const position = marker.getLatLng()
+    onChange({
+      lat: position.lat,
+      lng: position.lng
+    })
   }
-
+  
+  // Handle map click
+  const handleMapClick = (newPosition: {lat: number, lng: number}) => {
+    onChange(newPosition)
+  }
+  
   return (
-    <div className="flex flex-col gap-4">
-      <div className="h-[400px] w-full rounded-lg overflow-hidden border border-gray-300">
-        <MapContainer 
-          center={defaultPosition} 
-          zoom={17} 
-          scrollWheelZoom={false}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    <div className="w-full h-[400px] rounded-lg overflow-hidden border border-gray-300">
+      <MapContainer
+        center={[position.lat, position.lng]}
+        zoom={18}
+        style={{ height: "100%", width: "100%" }}
+        ref={mapContainerRef}
+        zoomControl={false}
+        scrollWheelZoom={true}
+        doubleClickZoom={true}
+        dragging={true}
+        attributionControl={true}
+        maxZoom={20}
+        minZoom={10}
+        zoomSnap={0.5}
+        zoomDelta={0.5}
+      >
+        <TileLayer
+          attribution='&copy; Google Maps'
+          url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+          maxZoom={20}
+          minZoom={10}
+          tileSize={256}
+        />
+        
+        {/* Hybrid Layer for Labels */}
+        <TileLayer
+          attribution='&copy; Google Maps'
+          url="https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}"
+          maxZoom={20}
+          minZoom={10}
+          tileSize={256}
+          className="reference-layer"
+          opacity={0.7}
+        />
+        
+        {/* Existing buildings */}
+        {buildings.map((building, index) => (
+          <Marker
+            key={building.name ? building.name : `map-building-${index}`}
+            position={[building.coordinates.lat, building.coordinates.lng]}
+            opacity={0.7}
+            icon={createBuildingIcon(false)}
           />
-          <LocationMarker 
-            initialPosition={defaultPosition} 
-            onLocationSelect={handleLocationSelect} 
-          />
-          
-          {/* Existing buildings */}
-          {buildings.map((building, index) => (
-            <Marker
-              key={building.name ? building.name : `map-building-${index}`}
-              position={[building.coordinates.lat, building.coordinates.lng]}
-              opacity={0.7}
-              icon={createBuildingIcon(false)}
-            />
-          ))}
-        </MapContainer>
-      </div>
+        ))}
+        
+        {/* Current position marker (draggable) */}
+        <Marker
+          position={[position.lat, position.lng]}
+          draggable={true}
+          eventHandlers={{
+            dragend: handleMarkerDrag
+          }}
+          icon={createPinIcon()}
+        />
+        
+        {/* Map controller for handling events */}
+        <MapController
+          onMapClick={handleMapClick}
+          position={position}
+        />
+        
+        {/* Add zoom control in bottom right */}
+        <ZoomControl position="bottomright" />
+      </MapContainer>
       
-      <div className="flex items-center gap-2 text-sm text-gray-600">
-        <MapPin className="h-4 w-4 text-[var(--yabatech-green)]" />
-        <span>Click on the map to set the building location</span>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium mb-1 block">Latitude</label>
-          <input
-            type="number"
-            step="0.000001"
-            value={selectedPosition.lat}
-            onChange={(e) => {
-              const newLat = parseFloat(e.target.value);
-              if (!isNaN(newLat)) {
-                const newPos = { ...selectedPosition, lat: newLat };
-                setSelectedPosition(newPos);
-                onLocationSelect(newPos);
-              }
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium mb-1 block">Longitude</label>
-          <input
-            type="number"
-            step="0.000001"
-            value={selectedPosition.lng}
-            onChange={(e) => {
-              const newLng = parseFloat(e.target.value);
-              if (!isNaN(newLng)) {
-                const newPos = { ...selectedPosition, lng: newLng };
-                setSelectedPosition(newPos);
-                onLocationSelect(newPos);
-              }
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-        </div>
+      <div className="bg-gray-100 text-xs p-2 text-gray-500">
+        Click on the map to place the marker or drag the marker to adjust position
       </div>
     </div>
   )

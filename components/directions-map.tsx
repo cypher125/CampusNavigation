@@ -249,11 +249,11 @@ const LocationMarker = ({ map }: { map: L.Map | null }) => {
           console.error('Error getting browser location:', error);
           
           const errorMessage = error.code === 1 
-            ? 'Location permission denied'
+                ? 'Location permission denied' 
             : error.code === 2 
-              ? 'Location unavailable'
+                  ? 'Location unavailable' 
               : error.code === 3 
-                ? 'Location request timed out'
+                    ? 'Location request timed out' 
                 : 'Unknown location error';
           
           toast.error(`Couldn't get your location: ${errorMessage}`, {
@@ -274,11 +274,11 @@ const LocationMarker = ({ map }: { map: L.Map | null }) => {
             getLocationByIP();
           } else if (locationAttempts < 3) {
             // For other errors, try IP location after multiple failures
-            toast('Falling back to approximate location...', {
-              icon: '🌐',
-              duration: 3000
-            });
-            getLocationByIP();
+          toast('Falling back to approximate location...', {
+            icon: '🌐',
+            duration: 3000
+          });
+          getLocationByIP();
           }
         },
         {
@@ -631,9 +631,9 @@ function MapController({
       if (!startPoint || !endPoint) {
         toast.error('Please select both starting and destination points');
         setLoading(false);
-        return;
-      }
-
+      return;
+    }
+    
       // Don't recalculate the same route
       const isSameStart = lastStartPoint && 
         startPoint[0] === lastStartPoint[0] && 
@@ -647,9 +647,9 @@ function MapController({
       if (hasCalculatedRoute && isSameStart && isSameEnd) {
         console.log('Route already calculated - using cached route');
         setLoading(false);
-        return;
-      }
-
+      return;
+    }
+    
       // Format coordinates for OSRM API (lng,lat format)
       const startCoord = `${startPoint[1]},${startPoint[0]}`;
       const endCoord = `${endPoint[1]},${endPoint[0]}`;
@@ -680,8 +680,8 @@ function MapController({
           throw new Error(`OSRM API error: ${response.status}`);
         }
         
-        const data = await response.json();
-        
+          const data = await response.json();
+          
         if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
           throw new Error(data.message || 'No route found');
         }
@@ -721,7 +721,7 @@ function MapController({
         }
         
         // Dispatch route to Redux store
-        dispatch(setRouteDetails({
+            dispatch(setRouteDetails({
           route: routeCoordinates,
           distance: distanceInKm,
           duration: durationInMinutes,
@@ -745,7 +745,7 @@ function MapController({
         }
         
         // Update flag to show we've calculated at least one route
-        setHasCalculatedRoute(true);
+            setHasCalculatedRoute(true);
         setLoading(false);
         return;
       } catch (osrmError) {
@@ -781,7 +781,7 @@ function MapController({
       if (transportMode === 'walking') {
         // Estimate walking duration (average 5 km/h or 12 minutes per km)
         durationInMinutes = Math.ceil(distance * 12);
-      } else {
+        } else {
         // Estimate driving duration (average 30 km/h in campus/city areas - or 2 minutes per km)
         durationInMinutes = Math.ceil(distance * 2);
       }

@@ -93,9 +93,9 @@ export default function BuildingPage({ params }: { params: { id: string } }) {
         <div className="container absolute inset-0 mx-auto flex flex-col justify-between p-4 text-white">
           <Link href="/buildings" className="mb-auto inline-flex w-fit items-center rounded-full bg-black/30 px-3 py-1.5 text-sm backdrop-blur-sm transition-colors hover:bg-black/50">
             <ArrowLeft className="mr-1.5 h-4 w-4" />
-            Back to Buildings
-          </Link>
-          
+        Back to Buildings
+      </Link>
+
           <div>
             <Badge className="mb-2 bg-[var(--yabatech-accent)] text-xs font-medium uppercase tracking-wider text-white">
               {building.department}
@@ -138,13 +138,13 @@ export default function BuildingPage({ params }: { params: { id: string } }) {
               <span className="font-medium">{building.location || "Main Campus"}</span>
             </div>
           </div>
-          
+
           {/* Description section */}
           <div className="mb-8">
             <h2 className="mb-3 text-xl font-semibold text-gray-800">Description</h2>
             <p className="leading-relaxed text-gray-700">{building.description || "No description available for this building."}</p>
           </div>
-          
+
           {/* Facilities section */}
           <div className="mb-8">
             <h2 className="mb-4 text-xl font-semibold text-gray-800">Facilities</h2>
@@ -163,7 +163,7 @@ export default function BuildingPage({ params }: { params: { id: string } }) {
               <p className="text-gray-500">No facilities information available for this building.</p>
             )}
           </div>
-          
+
           {/* Action buttons */}
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link href={`/map?building=${encodeURIComponent(buildingSlug)}`}>
