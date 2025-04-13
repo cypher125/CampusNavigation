@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "rm -rf node_modules/.cache",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "prebuild": "npm install --force"
+    "lint": "next lint"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",

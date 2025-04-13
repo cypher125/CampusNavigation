@@ -1,11 +1,12 @@
 import { Building } from '@/lib/types';
 
 /**
- * Loads all buildings from the API
+ * Loads all buildings from the Navigation API
  * @returns Promise resolving to array of buildings
  */
 export async function loadBuildings(): Promise<Building[]> {
   try {
+    console.log('Fetching buildings from local API proxy');
     const response = await fetch('/api/buildings', {
       headers: {
         'Accept': 'application/json',
