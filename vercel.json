@@ -1,9 +1,7 @@
 {
-  "github": {
-    "silent": true
-  },
-  "buildCommand": "npm install --no-save --legacy-peer-deps && next build",
-  "installCommand": "npm install --no-save --legacy-peer-deps",
-  "devCommand": "next dev",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": ".next"
 } 
