@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { buildings as localBuildings } from "@/lib/data"; // Import local data as fallback
 
 // This is a dynamic route handler for /api/buildings/[slug]
 // Where slug is now the building name
 
 // API URL from environment variables
 const API_URL = process.env.NEXT_PUBLIC_NAVIGATION_API_URL 
-  ? `${process.env.NEXT_PUBLIC_NAVIGATION_API_URL}/buildings/`
-  : 'https://navigationbackend.onrender.com/buildings/';
+  ? `${process.env.NEXT_PUBLIC_NAVIGATION_API_URL}/api/buildings/`
+  : 'https://navigationbackend.onrender.com/api/buildings/';
 
 // Helper function to format building name to slug
 function formatSlug(name: string): string {
@@ -31,24 +32,46 @@ export async function GET(
     
     console.log(`Fetching building with slug: ${slug}`);
     
-    // First, get all buildings
-    const response = await fetch(API_URL, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    });
+    let buildings = [];
+    let errorMessage = null;
+    
+    try {
+      // Try to fetch from the API
+      const response = await fetch(API_URL, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        // Add timeout to prevent long waiting
+        signal: AbortSignal.timeout(5000), // 5 second timeout
+      });
 
-    if (!response.ok) {
-      console.error(`Error fetching buildings: ${response.status} ${response.statusText}`);
-      return NextResponse.json(
-        { error: `Failed to fetch buildings: ${response.statusText}` },
-        { status: response.status }
-      );
+      if (!response.ok) {
+        console.error(`Error fetching buildings: ${response.status} ${response.statusText}`);
+        errorMessage = `API Error: ${response.statusText}`;
+        // Fall through to use local data
+      } else {
+        buildings = await response.json();
+        if (!buildings || !Array.isArray(buildings) || buildings.length === 0) {
+          console.warn("API returned empty or invalid data, using local fallback");
+          errorMessage = "API returned empty or invalid data";
+          // Fall through to use local data
+        } else {
+          console.log("Successfully fetched buildings from API");
+        }
+      }
+    } catch (fetchError) {
+      console.error("Error fetching from API, using local fallback:", fetchError);
+      errorMessage = `API unavailable: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`;
+      // Fall through to use local data
     }
-
-    const buildings = await response.json();
+    
+    // If API fetch failed or returned empty data, use local data
+    if (buildings.length === 0 || !Array.isArray(buildings)) {
+      console.log("Using local buildings data as fallback");
+      buildings = localBuildings;
+    }
     
     // Find the specific building by matching slug (derived from name)
     const building = Array.isArray(buildings) 
@@ -74,7 +97,11 @@ export async function GET(
     };
     
     // Return the found building
-    return NextResponse.json(buildingWithSlug);
+    return NextResponse.json(
+      errorMessage 
+        ? { ...buildingWithSlug, _info: `Using fallback data. ${errorMessage}` } 
+        : buildingWithSlug
+    );
   } catch (error) {
     console.error("Error in GET /api/buildings/[slug]:", error);
     return NextResponse.json(

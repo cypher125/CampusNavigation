@@ -692,8 +692,16 @@ export default function CampusMap({ buildings, selectedBuilding, onBuildingSelec
 
         {/* Show all buildings */}
         {!isEditing && localBuildings.map(
-          (building, index) =>
-            building.coordinates && (
+          (building, index) => {
+            // Add comprehensive validation for coordinates
+            const hasValidCoordinates = building.coordinates && 
+              typeof building.coordinates.lat === 'number' && 
+              !isNaN(building.coordinates.lat) && 
+              typeof building.coordinates.lng === 'number' && 
+              !isNaN(building.coordinates.lng);
+            
+            // Only render marker if coordinates are valid
+            return hasValidCoordinates ? (
               <Marker
                 key={`building-${building.id || `idx-${index}`}`}
                 position={[building.coordinates.lat, building.coordinates.lng]}
@@ -733,7 +741,8 @@ export default function CampusMap({ buildings, selectedBuilding, onBuildingSelec
                   </div>
                 </Popup>
               </Marker>
-            ),
+            ) : null;
+          }
         )}
       </MapContainer>
     </div>

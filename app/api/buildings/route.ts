@@ -100,9 +100,9 @@ function ensureFileExists(filePath: string): void {
 export async function GET() {
   try {
     const API_URL = process.env.NEXT_PUBLIC_NAVIGATION_API_URL || 'https://navigationbackend.onrender.com';
-    console.log(`Proxying GET request to: ${API_URL}/buildings/`);
+    console.log(`Proxying GET request to: ${API_URL}/api/buildings/`);
     
-    const response = await fetch(`${API_URL}/buildings/`);
+    const response = await fetch(`${API_URL}/api/buildings/`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch buildings: ${response.statusText}`);
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
     const method = Array.isArray(dataToSend) ? 'PUT' : 'POST';
     console.log(`Using ${method} method for this operation`);
     
-    const response = await fetch(`${API_URL}/buildings/`, {
+    const response = await fetch(`${API_URL}/api/buildings/`, {
       method: method,
       headers: {
         'Content-Type': 'application/json',

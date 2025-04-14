@@ -50,9 +50,12 @@ export default function Home() {
         
         {/* Map preview element */}
         <div className="absolute right-[15%] top-1/2 -translate-y-1/2 w-[30%] h-[60%] rounded-lg shadow-2xl border-4 border-white/20 overflow-hidden transform rotate-6 transition-transform hover:rotate-0 hover:scale-105 hidden lg:block animate-fade-in">
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "linear-gradient(45deg, #006838 0%, #004d2a 100%)" }}>
-            <div className="absolute inset-0 bg-[var(--yabatech-green)]/30 backdrop-blur-[2px]"></div>
-          </div>
+          <div className="absolute inset-0 bg-cover bg-center" style={{ 
+             backgroundImage: "url('/map.jpeg')",
+             backgroundSize: 'cover',
+             backgroundPosition: 'center'
+           }}></div>
+          <div className="absolute inset-0 bg-[var(--yabatech-green)]/5"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 animate-pulse">
             <div className="w-12 h-12 bg-[var(--yabatech-accent)] rounded-full opacity-70"></div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">

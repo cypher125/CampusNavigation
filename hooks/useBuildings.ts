@@ -14,14 +14,41 @@ function generateSlug(name: string): string {
 // Timestamp for this session to ensure unique IDs across page refreshes
 const sessionTimestamp = Date.now();
 
-// Helper to ensure building has slug
+// Default coordinates to use if building coordinates are invalid
+const DEFAULT_COORDINATES = {
+  lat: 6.518000, // Default latitude for YabaTech campus
+  lng: 3.373000  // Default longitude for YabaTech campus
+};
+
+// Helper to ensure building has slug and valid coordinates
 function normalizeBuilding(building: any, index: number): Building {
+  // Validate coordinates exist and have valid lat/lng values
+  let coordinates = DEFAULT_COORDINATES;
+  
+  if (building.coordinates) {
+    const hasValidLat = typeof building.coordinates.lat === 'number' && !isNaN(building.coordinates.lat);
+    const hasValidLng = typeof building.coordinates.lng === 'number' && !isNaN(building.coordinates.lng);
+    
+    if (hasValidLat && hasValidLng) {
+      coordinates = {
+        lat: building.coordinates.lat,
+        lng: building.coordinates.lng
+      };
+    } else {
+      console.warn(`Invalid coordinates for building "${building.name}", using default coordinates.`);
+    }
+  } else {
+    console.warn(`Missing coordinates for building "${building.name}", using default coordinates.`);
+  }
+  
   return {
     ...building,
     // Always generate a new ID that is guaranteed to be unique
     id: `bld-${sessionTimestamp}-${index}`,
     // Generate slug if it doesn't exist
-    slug: building.slug || generateSlug(building.name)
+    slug: building.slug || generateSlug(building.name),
+    // Ensure coordinates are valid
+    coordinates: coordinates
   };
 }
 

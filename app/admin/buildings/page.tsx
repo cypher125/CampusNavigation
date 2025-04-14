@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "react-hot-toast"
 import dynamic from "next/dynamic"
 import { uploadBuildingImage, getBuildingImageUrl } from '@/lib/api'
-import { createBuildingApi, updateBuildingApi } from '@/lib/buildingApi'
+import { createBuildingApi, updateBuildingApi } from '@/lib/building'
 import Image from 'next/image'
 
 // Dynamically import the MapSelector component with no SSR
